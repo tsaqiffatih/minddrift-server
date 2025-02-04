@@ -18,7 +18,6 @@
 - `slug`: String (Unique)
 - `status`: Enum (draft, review, published)
 - `author_id`: UUID (Foreign Key ke `users`)
-- `category_id`: UUID (Foreign Key ke `categories`)
 - `published_at`: Timestamp (Nullable)
 - `created_at`: Timestamp
 - `updated_at`: Timestamp
@@ -43,14 +42,19 @@
 - `created_at`: Timestamp
 - `updated_at`: Timestamp
 
-#### 6. **Tabel `article_tags`** (Many-to-Many antara `articles` dan `tags`)
+#### 6. **Tabel `article_tags`** (Many-to-Many antara `articles` dan `tags`) (auto-generate using gorm)
 - `article_id`: UUID (Foreign Key ke `articles`)
 - `tag_id`: UUID (Foreign Key ke `tags`)
+
+#### 6. **Tabel `article_categories`** (Many-to-Many antara `articles` dan `categories`) (auto-generate using gorm)
+- `article_id`: UUID (Foreign Key ke `articles`)
+- `category_id`: UUID (Foreign Key ke `tags`)
 
 #### 7. **Tabel `images`**
 - `id`: UUID (Primary Key)
 - `url`: String
 - `alt_text`: String
+- `article_id`: UUID (Foreign Key ke `articles`)
 - `caption`: String
 - `uploaded_by`: UUID (Foreign Key ke `users`)
 - `created_at`: Timestamp

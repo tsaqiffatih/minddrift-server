@@ -1,0 +1,8 @@
+bin/
+.env
+vendor/
+*.log
+huhu.md
+endpoint.md
+database.md
+structure.md
