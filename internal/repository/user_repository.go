@@ -7,10 +7,10 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(user model.User) error
-	GetUserByEmail(email string) (model.User, error)
-	GetUserByID(id uuid.UUID) (model.User, error)
-	UpdateUser(user model.User) error
+	CreateUser(user *model.User) error
+	GetUserByEmail(email string) (*model.User, error)
+	GetUserByID(id uuid.UUID) (*model.User, error)
+	UpdateUser(user *model.User) error
 	DeleteUser(id uuid.UUID) error
 }
 
@@ -24,23 +24,26 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (r *userRepository) CreateUser(user model.User) error {
+func (r *userRepository) CreateUser(user *model.User) error {
 	return r.db.Create(&user).Error
 }
 
-func (r *userRepository) GetUserByEmail(email string) (model.User, error) {
+func (r *userRepository) GetUserByEmail(email string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("email = ?", email).First(&user).Error
-	return user, err
+	return &user, err
 }
 
-func (r *userRepository) GetUserByID(id uuid.UUID) (model.User, error) {
+func (r *userRepository) GetUserByID(id uuid.UUID) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("id = ?", id).First(&user).Error
-	return user, err
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
-func (r *userRepository) UpdateUser(user model.User) error {
+func (r *userRepository) UpdateUser(user *model.User) error {
 	return r.db.Save(&user).Error
 }
 
