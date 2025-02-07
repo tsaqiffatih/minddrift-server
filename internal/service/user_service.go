@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/tsaqiffatih/minddrift-server/internal/model"
 	"github.com/tsaqiffatih/minddrift-server/internal/repository"
+	"github.com/tsaqiffatih/minddrift-server/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,10 +33,16 @@ func NewUserService(repo repository.UserRepository) UserService {
 
 // **Register User**
 func (s *userService) RegisterUser(user *model.User) (*model.User, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	existingUser, _ := s.repo.GetUserByEmail(user.Email)
+	if existingUser != nil {
+		return nil, errors.New("email already exists")
+	}
+
+	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
+
 	user.Password = string(hashedPassword)
 	user.ID = uuid.New()
 

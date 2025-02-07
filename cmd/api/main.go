@@ -7,7 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tsaqiffatih/minddrift-server/config"
+	"github.com/tsaqiffatih/minddrift-server/internal/handler"
 	"github.com/tsaqiffatih/minddrift-server/internal/model"
+	"github.com/tsaqiffatih/minddrift-server/internal/repository"
+	"github.com/tsaqiffatih/minddrift-server/internal/service"
 )
 
 func main() {
@@ -31,9 +34,21 @@ func main() {
 		log.Fatalf("❌ Database migration failed: %v", err)
 	}
 
+	userRepo := repository.NewUserRepository(db)
+
+	userService := service.NewUserService(userRepo)
+
+	userHandler := handler.NewUserHandler(userService)
+
 	fmt.Println("✅ Database migration completed!")
 
 	r := gin.Default()
+
+	handlers := map[string]interface{}{
+		"user": userHandler,
+	}
+
+	RegisterRoutes(r, handlers)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

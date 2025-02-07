@@ -5,8 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/tsaqiffatih/minddrift-server/internal/dto"
 	"github.com/tsaqiffatih/minddrift-server/internal/model"
 	"github.com/tsaqiffatih/minddrift-server/internal/service"
+	"github.com/tsaqiffatih/minddrift-server/pkg/utils"
 )
 
 type UserHandler struct {
@@ -19,19 +21,42 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 
 // **Register User**
 func (h *UserHandler) RegisterUser(c *gin.Context) {
-	var user model.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req dto.CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	if err := utils.ValidateStruct(req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	newUser, err := h.userService.RegisterUser(&user)
+	user := &model.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
+		Role:     model.UserRole(req.Role),
+	}
+
+	createdUser, err := h.userService.RegisterUser(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, newUser)
+	response := dto.UserResponse{
+		ID:            createdUser.ID,
+		Username:      createdUser.Username,
+		Email:         createdUser.Email,
+		Role:          string(createdUser.Role),
+		EmailVerified: createdUser.EmailVerified,
+		TwoFAEnabled:  createdUser.TwoFAEnabled,
+		CreatedAt:     createdUser.CreatedAt,
+		UpdatedAt:     createdUser.UpdatedAt,
+	}
+
+	c.JSON(http.StatusCreated, response)
 }
 
 // **Login User**
@@ -179,7 +204,7 @@ func (h *UserHandler) ChangeUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Peran pengguna berhasil diubah"})
 }
 
-// **Change User Role**
+// **Delete User**
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
