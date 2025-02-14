@@ -15,7 +15,7 @@ const (
 )
 
 type Article struct {
-	ID          uuid.UUID     `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	ID          uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	Title       string        `gorm:"not null"`
 	Content     string        `gorm:"type:text;not null"`
 	Slug        string        `gorm:"unique;not null"`

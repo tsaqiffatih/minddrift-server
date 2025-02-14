@@ -36,9 +36,9 @@ func main() {
 
 	userRepo := repository.NewUserRepository(db)
 
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, cfg)
 
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, cfg)
 
 	fmt.Println("✅ Database migration completed!")
 
@@ -48,7 +48,7 @@ func main() {
 		"user": userHandler,
 	}
 
-	RegisterRoutes(r, handlers)
+	RegisterRoutes(r, handlers, cfg)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

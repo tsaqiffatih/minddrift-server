@@ -1,10 +1,14 @@
 package model
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
+)
+
+var (
+	ErrEmailAlreadyExists = errors.New("email already exists")
 )
 
 type UserRole string
@@ -16,7 +20,7 @@ const (
 )
 
 type User struct {
-	ID            uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
+	ID            uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	Username      string    `gorm:"unique;not null" json:"username"`
 	Email         string    `gorm:"unique;not null" json:"email"`
 	Password      string    `gorm:"not null" json:"-"`
@@ -26,9 +30,4 @@ type User struct {
 	TwoFASecret   string    `gorm:"type:text" json:"-"`
 	CreatedAt     time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt     time.Time `gorm:"autoUpdateTime" json:"updated_at"`
-}
-
-func (u *User) BeforeCreate(tx *gorm.DB) error {
-	u.ID = uuid.New()
-	return nil
 }

@@ -2,28 +2,51 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tsaqiffatih/minddrift-server/config"
 	"github.com/tsaqiffatih/minddrift-server/pkg/utils"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.GetHeader("Authorization")
-		if token == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token diperlukan"})
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error":   "Invalid token",
+			})
 			c.Abort()
 			return
 		}
 
-		userID, err := utils.VerifyJWT(token)
+		// 🔹 Pisahkan "Bearer" dari token
+		tokenParts := strings.Split(authHeader, " ")
+		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error":   "Invalid token",
+			})
+			c.Abort()
+			return
+		}
+		token := tokenParts[1]
+
+		// 🔹 Verifikasi token dengan `cfg`
+		claims, err := utils.VerifyJWT(cfg, token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token tidak valid"})
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error":   "Invalid token",
+			})
 			c.Abort()
 			return
 		}
 
-		c.Set("userID", userID)
+		c.Set("userID", claims.UserID)
+		c.Set("role", claims.Role)
+
 		c.Next()
 	}
 }
